@@ -1,0 +1,78 @@
+name: Build Accessibility Helper APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/artemis-accessibility-helper/**"
+      - ".github/workflows/android-apk.yml"
+  pull_request:
+    paths:
+      - "packages/artemis-accessibility-helper/**"
+      - ".github/workflows/android-apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-apk:
+    name: Build ArtemisAccessibilityHelper.apk
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Ensure Android SDK components
+        run: |
+          SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+          yes | "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK_ROOT" --licenses > /dev/null
+          "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK_ROOT" \
+            "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Build APK
+        working-directory: packages/artemis-accessibility-helper
+        run: bash build_apk.sh
+
+      - name: Verify APK signature
+        working-directory: packages/artemis-accessibility-helper
+        run: |
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs ArtemisAccessibilityHelper.apk
+          "$ANDROID_HOME/build-tools/35.0.0/aapt2" dump badging ArtemisAccessibilityHelper.apk | head -n 5
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ArtemisAccessibilityHelper-apk
+          path: |
+            packages/artemis-accessibility-helper/ArtemisAccessibilityHelper.apk
+            packages/artemis-accessibility-helper/helper_manifest.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish release asset
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(python3 -c "import json;print(json.load(open('packages/artemis-accessibility-helper/helper_manifest.json'))['version_name'])")
+          TAG="helper-v$VERSION"
+          gh release view "$TAG" > /dev/null 2>&1 || \
+            gh release create "$TAG" --title "Accessibility Helper v$VERSION" \
+              --notes "Automated APK build from commit $GITHUB_SHA."
+          gh release upload "$TAG" \
+            packages/artemis-accessibility-helper/ArtemisAccessibilityHelper.apk \
+            packages/artemis-accessibility-helper/helper_manifest.json \
+            --clobber

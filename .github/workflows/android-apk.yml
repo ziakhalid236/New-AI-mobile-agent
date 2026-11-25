@@ -53,7 +53,7 @@ jobs:
           "$ANDROID_HOME/build-tools/35.0.0/aapt2" dump badging ArtemisAccessibilityHelper.apk | head -n 5
 
       - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ArtemisAccessibilityHelper-apk
           path: |

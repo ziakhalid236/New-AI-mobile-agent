@@ -1,7 +1,7 @@
 {
   "package": "com.artemis.helper",
-  "version_code": 6,
-  "version_name": "1.2.0",
-  "sha256": "7b294842f685a0a7e3331062faf119af367e14ff9967099ba114924cd9e5070a",
-  "built_at": "2026-11-25T02:53:51+00:00"
+  "version_code": 7,
+  "version_name": "1.3.0",
+  "sha256": "f2b9f7a66ffff69969e3f589736635ad82cb22b0ee01a70d056180f6ef1eb896",
+  "built_at": "2026-11-25T03:33:49+00:00"
 }

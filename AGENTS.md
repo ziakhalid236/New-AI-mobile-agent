@@ -39,6 +39,33 @@ come from `app/build.gradle.kts`; bump them there, never in the script.
 `.github/workflows/android-apk.yml` builds the APK on every relevant push and
 publishes it as a release asset tagged `helper-v<version>`.
 
+`verify_apk.sh` is the install-readiness gate: it fails on a missing v2/v3
+signature (Android 11+ refuses those), a misaligned zip, a manifest without a
+launcher entry, an empty DEX, or a `helper_manifest.json` whose hash no longer
+matches the APK. Run it after every build; CI runs it too.
+
+### Testing the APK on a device
+
+There is no KVM in this container, so an x86 system image needs software
+emulation. It boots in a couple of minutes on 4 cores:
+
+```bash
+export ANDROID_HOME=$HOME/android-sdk
+export ANDROID_I_WANT_MY_TCG=yes
+$ANDROID_HOME/emulator/emulator -avd artemis28 -no-window -no-audio \
+  -no-boot-anim -no-snapshot -gpu swiftshader_indirect -accel off &
+adb wait-for-device
+```
+
+Then the end-to-end loop is `adb install -r ArtemisAccessibilityHelper.apk`,
+`adb shell am start -n com.artemis.helper/.MainActivity`, and
+`uv run artemis helper install && uv run artemis helper parity`. The parity
+command dumps the same screen through the helper and through UIAutomator2 and
+compares labels; `PARITY OK` means the APK is doing its real job.
+
+The helper has no UI of its own beyond the launcher screen, so a build without
+that screen installs with no icon and looks like it never installed at all.
+
 ## Conventions
 
 - Ruff for formatting and linting (`uv run ruff format .`, `uv run ruff check .`).

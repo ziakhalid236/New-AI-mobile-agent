@@ -46,11 +46,11 @@ jobs:
         working-directory: packages/artemis-accessibility-helper
         run: bash build_apk.sh
 
-      - name: Verify APK signature
+      - name: Verify APK is install-ready
         working-directory: packages/artemis-accessibility-helper
         run: |
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs ArtemisAccessibilityHelper.apk
-          "$ANDROID_HOME/build-tools/35.0.0/aapt2" dump badging ArtemisAccessibilityHelper.apk | head -n 5
+          bash verify_apk.sh
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v5

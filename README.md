@@ -257,9 +257,12 @@ The first task on a device installs the **Artemis Accessibility Helper**, a smal
 accessibility service that reads the screen layout without taking the
 UiAutomation connection. Tools using UiAutomation can suppress the helper unless
 they enable `FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES`. You will see
-a collapsed "Artemis test helper is running" notification and a new entry under
-Settings > Accessibility; both are that helper. It listens only on the phone
-itself and sends nothing elsewhere.
+a collapsed "Artemis test helper is running" notification, a launcher icon named
+"Artemis Accessibility Helper", and a new entry under Settings > Accessibility.
+The launcher screen shows whether the service and its loopback server are up,
+opens accessibility settings, and copies the adb command that delivers the
+session token. The helper listens only on the phone itself and sends nothing
+elsewhere.
 
 * Pre-install it (avoids the ~3 s delay on the first task): `uv run artemis helper install`
 * Inspect it: `uv run artemis helper status` / `uv run artemis doctor`

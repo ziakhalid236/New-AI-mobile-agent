@@ -188,6 +188,8 @@ fi
     --ks-pass pass:android \
     --key-pass pass:android \
     --ks-key-alias androiddebugkey \
+    --v2-signing-enabled true \
+    --v3-signing-enabled true \
     --out ArtemisAccessibilityHelper.apk \
     build/apk/aligned.apk
 
